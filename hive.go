@@ -525,6 +525,43 @@ func (c *Cursor) Poll(getProgres bool) (status *hiveserver.TGetOperationStatusRe
 	return responsePoll
 }
 
+// Handle returns operation id
+func (c *Cursor) GetHandle() (guid, secret []byte) {
+	if c.operationHandle == nil {
+		c.Err = fmt.Errorf("GetHandle can only be called after after a Poll or after an async request")
+		return nil, nil
+	}
+
+	guid = c.operationHandle.OperationId.GUID
+	secret = c.operationHandle.OperationId.Secret
+
+	return
+}
+
+// Status returns operation status
+func (c *Cursor) Status(guid, secret []byte) (status *hiveserver.TGetOperationStatusResp) {
+	request := hiveserver.NewTGetOperationStatusReq()
+	request.OperationHandle = &hiveserver.TOperationHandle{
+		OperationId: &hiveserver.THandleIdentifier{
+			GUID:   guid,
+			Secret: secret,
+		},
+	}
+
+	var response *hiveserver.TGetOperationStatusResp
+
+	// Context ignored
+	response, c.Err = c.conn.client.GetOperationStatus(context.Background(), request)
+	if c.Err != nil {
+		return nil
+	}
+	if !success(response.GetStatus()) {
+		c.Err = fmt.Errorf("Error closing the operation: %s", response.Status.String())
+		return nil
+	}
+	return response
+}
+
 // Finished returns true if the last async operation has finished
 func (c *Cursor) Finished() bool {
 	operationStatus := c.Poll(true)
