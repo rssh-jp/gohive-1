@@ -538,7 +538,9 @@ func (c *Cursor) GetHandle() *hiveserver.THandleIdentifier {
 // Status returns operation status
 func (c *Cursor) Status(handle *hiveserver.THandleIdentifier) (status *hiveserver.TGetOperationStatusResp) {
 	request := hiveserver.NewTGetOperationStatusReq()
-	request.OperationHandle = handle
+	request.OperationHandle = &hiveserver.TOperationHandle{
+		OperationId: handle,
+	}
 
 	var response *hiveserver.TGetOperationStatusResp
 
