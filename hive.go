@@ -525,7 +525,7 @@ func (c *Cursor) Poll(getProgres bool) (status *hiveserver.TGetOperationStatusRe
 	return responsePoll
 }
 
-// Handle returns operation id
+// GetHandle returns operation id
 func (c *Cursor) GetHandle() *hiveserver.THandleIdentifier {
 	if c.operationHandle == nil {
 		c.Err = fmt.Errorf("GetHandle can only be called after after a Poll or after an async request")
@@ -535,12 +535,17 @@ func (c *Cursor) GetHandle() *hiveserver.THandleIdentifier {
 	return c.operationHandle.OperationId
 }
 
+// SetHandle is setting operation id
+func (c *Cursor) SetHandle(handle *hiveserver.THandleIdentifier) {
+	c.operationHandle = hiveserver.NewTOperationHandle()
+	c.operationHandle.OperationId = handle
+}
+
 // Status returns operation status
-func (c *Cursor) Status(handle *hiveserver.THandleIdentifier) (status *hiveserver.TGetOperationStatusResp) {
+func (c *Cursor) Status() (status *hiveserver.TGetOperationStatusResp) {
 	request := hiveserver.NewTGetOperationStatusReq()
-	request.OperationHandle = &hiveserver.TOperationHandle{
-		OperationId: handle,
-	}
+
+	request.OperationHandle = c.operationHandle
 
 	var response *hiveserver.TGetOperationStatusResp
 
